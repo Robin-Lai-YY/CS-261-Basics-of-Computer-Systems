@@ -1,0 +1,118 @@
+.pos 0x100
+main:   
+        irmovq  arraysize, %rsi
+        irmovq  stackend, %rsp
+        irmovq  array, %rdi
+        mrmovq  (%rsi), %rsi
+        call    quickSort
+        halt
+        
+.pos 0x1000
+quickSort:
+        
+        
+        irmovq  $1, %r9
+        
+        
+        subq    %rsi, %r9
+        
+        jge     LN1
+        
+        pushq   %r12
+        pushq   %rbp
+        
+        pushq   %rbx
+        
+        rrmovq  %rsi, %rbp
+        irmovq  $8, %r9
+        rrmovq  %rsi, %rcx
+        mulq    %r9, %rcx
+        subq    %r9, %rcx
+        rrmovq  %rdi, %r9
+        addq    %rdi, %rcx
+        mrmovq  (%rcx), %r8
+        subq    %rcx, %r9
+        
+        jle     LN6
+        
+        rrmovq  %rdi, %rbx
+
+LN3:        
+        mrmovq  (%rcx), %rax
+        mrmovq  (%rbx), %rdx
+        rmmovq  %rax, (%rbx)
+        rrmovq  %rbx, %r12
+        rmmovq  %rdx, (%rcx)
+        
+        subq    %rdi, %r12   
+        irmovq  $8, %r9      
+        divq    %r9, %r12    
+        
+        
+        rrmovq  %r12, %rsi
+        subq    %r12, %rbp
+        
+        
+        call    quickSort
+        
+        
+        irmovq  $1, %r9
+        rrmovq  %rbp, %rsi
+        rrmovq  %rbx, %rdi
+        subq    %r9, %rsi
+        
+        //irmovq  $8, %r9
+        
+        addq    %r9, %rdi
+        
+        
+        call    quickSort
+        
+        popq    %rbx
+        popq    %rbp
+        popq    %r12
+        jmp     LN1
+LN6:
+        rrmovq  %rdi, %rax
+        rrmovq  %rdi, %rbx
+LN5:
+        mrmovq  (%rax), %rdx
+        rrmovq  %r8, %r9
+        subq    %rdx, %r9
+        jl      LN4
+        mrmovq  (%rbx), %rsi
+        irmovq  $8, %r9
+        rmmovq  %rdx, (%rbx)
+        rmmovq  %rsi, (%rax)
+        addq    %r9, %rbx
+LN4:
+        irmovq  $8, %r9
+        addq    %r9, %rax
+        rrmovq  %rcx, %r9
+        subq    %rax, %r9
+        jle     LN3
+        jmp     LN5
+
+        
+LN1:     ret
+        
+.pos 0x2000
+array:
+        .quad 0x7
+        .quad 0x3
+        .quad 0x4
+        .quad 0xa
+        .quad 0x5
+        .quad 0x8
+        .quad 0x9
+        .quad 0x1
+        .quad 0x2
+        .quad 0x6
+arraysize:
+        .quad 10
+
+.pos 0x4000
+stack:
+        .quad 0x0,200
+stackend:
+        .quad 0x0

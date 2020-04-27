@@ -1,0 +1,95 @@
+.pos 0x100
+main:   
+        irmovq  stackend, %rsp          # initialize the stack pointer to address 0x00
+        irmovq  array, %rdi             # initialize the %rdi, store the base address of array 
+        irmovq  arraysize, %rsi         # initialize the %rsi, store the address of arraysize
+        mrmovq  (%rsi), %rsi            # %rsi = arraysize
+        call    quickSort               # call the function quickSort
+        halt                            # terminate
+        
+.pos 0x1000                     
+quickSort:                     
+        pushq   %r12                    # create a new variable 
+        pushq   %rbp                    # create a new variable                 (len)
+        pushq   %rbx                    # create a new variable                 (i)
+        rrmovq  %rsi, %rbp              # %rbp = arraysize                      (len)
+        irmovq  $1, %r9                 # %r9 = 1
+        subq    %rsi, %r9               # %r9 = %r9 - %rsi = 1 - arraysize      (1 - len <= 0?)
+        jge     LN1                     # if %r9 >=0, go LN1                    (if len <= 1) go return
+        irmovq  $8, %r9                 # %r9 = 8
+        rrmovq  %rsi, %rcx              # %rcx = arraysize
+        mulq    %r9, %rcx               # %rcx = %rcx * 8                       (len)
+        subq    %r9, %rcx               # %rcx = %rcx - 8                       (len - 1)
+        addq    %rdi, %rcx              # %rcx = %rcx + %rdi                    (*high = A + len -1)
+        mrmovq  (%rcx), %r8             # %r8 = the value in address *high      (pivot = *high)
+        rrmovq  %rdi, %r9               # %r9 = %rdi, which is the base address of array                ()
+        subq    %rcx, %r9               # %r9 = %r9 - %rcx, base address - arraysize
+        jle     LN6                     # if %r9 <= 0, go LN6
+        rrmovq  %rdi, %rbx              # %rbx = %rdi, base address of array
+LN3:
+        mrmovq  (%rcx), %rax            # %rax = M(%rcx)                                        (t = *high)
+        mrmovq  (%rbx), %rdx            # %rdx = M(%rbx), which is the base address of array    (temp = *i)                    
+        rmmovq  %rdx, (%rcx)            # (%rcx) = %rdx,                                        (*high = temp)
+        rmmovq  %rax, (%rbx)            # (%rbx) = %rax                                         (*i = t)
+        rrmovq  %rbx, %r12              # %r12 = %rbx, which is the address of i
+        subq    %rdi, %r12              # %r12 = %r12 - %rdi                                    (i - A) in memory address    
+        irmovq  $8, %r9                 # %r9 = 8
+        divq    %r9, %r12               # %r12 = %r12 / %r9                                     (i - A) in index
+        rrmovq  %r12, %rsi              # %rsi = %r12                                           (len = i - A)
+        call    quickSort               # call the function quickSort                           (quickSort(A, i - A)) 
+        subq    %r12, %rbp              # %rbp = %rbp - %r12                                    (arraysize in memory address / 8 = len)                    
+        rrmovq  %rbp, %rsi              # %rsi = %rbp                                           (len)
+        irmovq  $1, %r9                 # %r9 = 1
+        subq    %r9, %rsi               # %rsi = %rsi - %r9                                     (len = len - 1)
+        irmovq  $8, %r9                 # %r9 = 8
+        rrmovq  %rbx, %rdi              # %rdi = %rbx                                           (base address of array = i)
+        addq    %r9, %rdi               # %rdi = %rdi + %r9                                     (i = i + 1)
+        call    quickSort               # call the function quickSort                           (quickSort(A, i - A)) 
+        jmp     LN1                     # go back to LN1
+LN6:
+        rrmovq  %rdi, %rax              # %rax = %rdi, which is the base address of array                
+        rrmovq  %rdi, %rbx              # %rbx = %rdi, which is the base address of array                
+LN5:
+        mrmovq  (%rax), %rdx            # %rdx = M(%rax), base address of array from memory
+        rrmovq  %r8, %r9                # %r9 = %r8 (value of high)
+        subq    %rdx, %r9               # %r9 = %r9 - %rdx                                      (high - j > 0 ?)
+        jl      LN4                     # if %r9 less than 0, go LN4                            (while(j < high))
+        mrmovq  (%rbx), %rsi            # enter if statement, %rsi = M(%rbx), which is the base address of array         (t = *j) 
+        rmmovq  %rsi, (%rax)            # M(%rax) = %rsi                                        (*j = *i)                        
+        rmmovq  %rdx, (%rbx)            # M(%rbx) = %rdx, base address of array from memory     (*i = t)
+        irmovq  $8, %r9                 # %r9 = 8
+        addq    %r9, %rbx               # % rbx = %rbx + %r9                                    (i++)
+LN4:
+        irmovq  $8, %r9                 # %r9 = 8       
+        addq    %r9, %rax               # %rax = %rax + %r9                                     (j++)
+        rrmovq  %rcx, %r9               # %r9 = %rcx (= high)
+        subq    %rax, %r9               # %r9 = %r9 - %rax                                      (high - j <= 0 ?)                               
+        jle     LN3                     # if yes, exit the while loop
+        jmp     LN5                     # if no, go back to the begining of the loop
+LN1:
+        popq    %rbx                    # pop variable back
+        popq    %rbp                    # pop variable back
+        popq    %r12                    # pop variable back
+        ret                             # return
+        
+.pos 0x2000
+array:
+        .quad 0x7
+        .quad 0x3
+        .quad 0x4
+        .quad 0xa
+        .quad 0x5
+        .quad 0x8
+        .quad 0x9
+        .quad 0x1
+        .quad 0x2
+        .quad 0x6
+arraysize:
+        .quad 10
+
+.pos 0x4000
+stack:
+        .quad 0x0,200
+stackend:
+        .quad 0x0
+
